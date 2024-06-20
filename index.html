@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mandelbrot Explorer</title>
+    <style>
+        body, html {
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.473);
+        }
+        #controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px;
+            background-color: rgba(0, 0, 0, 0.233);
+            color: white;
+        }
+        #hud {
+            display: flex;
+            flex-direction: column;
+            padding: 5px;
+            background-color: rgba(0, 0, 0, 0.219);
+            color: white;
+            max-width: 200px;
+        }
+        #hud div, #hud label, #hud button, #hud input, #hud select {
+            margin: 3px 0;
+        }
+        #savedCoords {
+            display: none;
+            position: absolute;
+            background-color: #333333a8;
+            border: 1px solid #555;
+            margin-top: 5px;
+            z-index: 1;
+            max-height: 150px;
+            overflow-y: auto;
+            padding: 5px;
+        }
+        #dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        #dropdown:hover #savedCoords {
+            display: block;
+        }
+        canvas {
+            flex-grow: 1;
+        }
+        input[type="number"] {
+            width: 50px;
+        }
+        button {
+            cursor: pointer;
+            padding: 5px;
+            background-color: #444;
+            border: none;
+            color: white;
+        }
+        button:hover {
+            background-color: #555;
+        }
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        #toggleControls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px;
+            background-color: #444;
+            border: none;
+            color: white;
+            cursor: pointer;
+        }
+        #toggleControls:hover {
+            background-color: #555;
+        }
+        #helpMenu {
+            display: none;
+            position: absolute;
+            top: 50px;
+            right: 10px;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            max-width: 300px;
+            border: 1px solid #555;
+            z-index: 2;
+        }
+        #closeHelp {
+            margin-top: 10px;
+            cursor: pointer;
+            padding: 5px;
+            background-color: #444;
+            border: none;
+            color: white;
+        }
+        #closeHelp:hover {
+            background-color: #555;
+        }
+        #addCoordForm {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 3;
+            border: 1px solid #555;
+        }
+    </style>
+</head>
+<body>
+    <button id="toggleControls">Show Controls</button>
+    <div id="controls" style="display: none;">
+        <div id="hud">
+            <div id="stats"></div>
+            <div id="dropdown">
+                <button id="saveCoord">Save Coord</button>
+                <div id="savedCoords"></div>
+            </div>
+            <button id="addCoordButton">Add Coord</button>
+        </div>
+        <div class="control-group">
+            <label for="baseIterationLimit">Iterations:</label>
+            <input type="number" id="baseIterationLimit" value="10">
+        </div>
+        <div class="control-group">
+            <label for="zoomFactor">Zoom Factor:</label>
+            <input type="number" step="0.1" id="zoomFactor" value="1.2">
+        </div>
+        <div class="control-group">
+            <label for="pixelSkip">Pixel Skip:</label>
+            <input type="number" id="pixelSkip" value="1">
+        </div>
+        <div class="control-group">
+            <label for="dithering">Dither:</label>
+            <input type="checkbox" id="dithering" checked>
+        </div>
+        <div class="control-group">
+            <label for="orbitTrap">Orbit:</label>
+            <input type="checkbox" id="orbitTrap">
+        </div>
+        <div class="control-group">
+            <label for="colorShift">Color Shift:</label>
+            <input type="checkbox" id="colorShift" checked>
+        </div>
+        <button id="toggleAutoZoom">Auto Zoom</button>
+        <button id="resetSimulation">Reset</button>
+        <button id="toggleHelp">Help</button>
+    </div>
+    <div id="addCoordForm">
+        <label for="inputZoom">Zoom:</label>
+        <input type="number" id="inputZoom" step="0.1">
+        <label for="inputOffsetX">Offset X:</label>
+        <input type="number" id="inputOffsetX" step="0.000000000000001">
+        <label for="inputOffsetY">Offset Y:</label>
+        <input type="number" id="inputOffsetY" step="0.000000000000001">
+        <button id="saveInputCoord">Save Coord</button>
+        <button id="closeAddCoord">Close</button>
+    </div>
+    <div id="helpMenu">
+        <button id="closeHelp">Close</button>
+        <h3>Help</h3>
+        <p>Welcome to the Mandelbrot Explorer!</p>
+        <p>made by derby </p>
+        <p><strong>Controls:</strong></p>
+        <ul>
+            <li><strong>Iterations:</strong> Set the base number of iterations for the Mandelbrot calculation.</li>
+            <li><strong>Zoom Factor:</strong> Set the factor by which the zoom increases or decreases.</li>
+            <li><strong>Pixel Skip:</strong> Set the number of pixels to skip while rendering (higher values increase performance).</li>
+            <li><strong>Dither:</strong> Toggle dithering effect on/off.</li>
+            <li><strong>Orbit:</strong> Toggle orbit trap visualization on/off.</li>
+            <li><strong>Color Shift:</strong> Toggle color shifting on/off.</li>
+            <li><strong>Auto Zoom:</strong> Enable or disable automatic zooming.</li>
+            <li><strong>Reset:</strong> Reset the simulation to initial settings.</li>
+            <li><strong>Save Coord:</strong> Save the current zoom and position settings.</li>
+        </ul>
+    </div>
+    <canvas id="backgroundCanvas"></canvas>
+    <script src="index.js"></script>
+</body>
+</html>
+code by derby :)
